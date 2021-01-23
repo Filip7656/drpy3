@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+    <title>Top {{number}} posts from {{df_name}}</title>
+</head>
+<body>
+    <h2 align = "center">Top {{number}} posts from {{df_name}}</h2>
+    <div>
+        {% for index, row in posts.iterrows() %}
+        <div>
+            <p>{{row['Title']}}, {{row['Score']}}</p>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

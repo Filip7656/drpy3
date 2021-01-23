@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+<head>
+    <style>
+        #chartdiv {
+          width: 100%;
+          height: 500px;
+        }
+    </style>
+    <title></title>
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+</head>
+<body>
+    <h2 align = "center">Top</h2>
+    <div>
+        <div id="chartdiv"></div>
+    </div>
+</body>
+<script>
+    {% if df_name == 'all' %}
+    var questions = {{questions|safe}};
+    var data = [];
+    var all_keys = [];
+    for(var i in questions) {
+        var keys = Object.keys(questions[i]);
+        for(var k in keys) {
+            if(!all_keys.includes(keys[k])) {
+                all_keys.push(keys[k]);
+            }
+        }
+    }
+    all_keys.sort(function(x, y) {
+        var datex = x;
+        var datey = y;
+        var monthx = parseInt(datex.split('/')[0]);
+        var yearx = parseInt(datex.split('/')[1]);
+        var monthy = parseInt(datey.split('/')[0]);
+        var yeary = parseInt(datey.split('/')[1]);
+        if (yearx < yeary) {
+            return -1;
+        }
+        if (yearx > yeary) {
+            return 1;
+        }
+        if (monthx < monthy) {
+            return -1;
+        }
+        if (monthx > monthy) {
+            return 1;
+        }
+        return 0;
+        });
+    const keys1 = Object.keys(questions[0]);
+    const keys2 = Object.keys(questions[1]);
+    const keys3 = Object.keys(questions[2]);
+    var temp = {};
+    for(var k in all_keys) {
+        temp['category'] = all_keys[k];
+        if(keys1.includes(all_keys[k])) {
+            temp['first'] = questions[0][all_keys[k]];
+        }
+        if(keys2.includes(all_keys[k])) {
+            temp['second'] = questions[1][all_keys[k]];
+        }
+        if(keys3.includes(all_keys[k])) {
+            temp['third'] = questions[2][all_keys[k]];
+        }
+        data.push(temp);
+        temp = {};
+    }
+    
+    {% else %}
+    var questions = {{questions|safe}};
+    var data = [];
+    const keys = Object.keys(questions);
+    for(var k in keys) {
+        data.push(
+            {
+                category: keys[k],
+                first: questions[keys[k]]
+            }
+        )
+    };
+    console.log(data)
+    data.sort(function(x, y) {
+    var datex = x['category'];
+    var datey = y['category'];
+    var monthx = parseInt(datex.split('/')[0]);
+    var yearx = parseInt(datex.split('/')[1]);
+    var monthy = parseInt(datey.split('/')[0]);
+    var yeary = parseInt(datey.split('/')[1]);
+    if (yearx < yeary) {
+        return -1;
+    }
+    if (yearx > yeary) {
+        return 1;
+    }
+    if (monthx < monthy) {
+        return -1;
+    }
+    if (monthx > monthy) {
+        return 1;
+    }
+    return 0;
+    });
+    {% endif %}
+
+    am4core.ready(function() {
+
+// Themes begin
+    am4core.useTheme(am4themes_animated);
+    // Themes end
+
+
+
+    var chart = am4core.create('chartdiv', am4charts.XYChart)
+    chart.colors.step = 2;
+
+    {% if df_name == 'all' %}
+    chart.legend = new am4charts.Legend()
+    chart.legend.position = 'top'
+    chart.legend.paddingBottom = 20
+    chart.legend.labels.template.maxWidth = 95
+    {% endif %}
+
+    var xAxis = chart.xAxes.push(new am4charts.CategoryAxis())
+    xAxis.dataFields.category = 'category'
+    xAxis.renderer.cellStartLocation = 0.1
+    xAxis.renderer.cellEndLocation = 0.9
+    xAxis.renderer.grid.template.location = 0;
+
+    var yAxis = chart.yAxes.push(new am4charts.ValueAxis());
+    yAxis.min = 0;
+
+    function createSeries(value, name) {
+        var series = chart.series.push(new am4charts.ColumnSeries())
+        series.dataFields.valueY = value
+        series.dataFields.categoryX = 'category'
+        series.name = name
+        series.columns.template.tooltipText = "{categoryX}: [bold]{valueY}[/]";
+        series.events.on("hidden", arrangeColumns);
+        series.events.on("shown", arrangeColumns);
+
+        var bullet = series.bullets.push(new am4charts.LabelBullet())
+        bullet.interactionsEnabled = false
+        bullet.dy = 30;
+        // bullet.label.text = '{valueY}'
+        // bullet.label.fill = am4core.color('#ffffff')
+
+        return series;
+    }
+
+    chart.data = data;
+
+    {% if df_name != 'all' %}
+    createSeries('first', '{{df_name}}');
+    {% else %}
+    createSeries('first', '{{websites[0]}}');
+    createSeries('second', '{{websites[1]}}');
+    createSeries('third', '{{websites[2]}}');
+    {% endif %}
+    function arrangeColumns() {
+
+        var series = chart.series.getIndex(0);
+
+        var w = 1 - xAxis.renderer.cellStartLocation - (1 - xAxis.renderer.cellEndLocation);
+        if (series.dataItems.length > 1) {
+            var x0 = xAxis.getX(series.dataItems.getIndex(0), "categoryX");
+            var x1 = xAxis.getX(series.dataItems.getIndex(1), "categoryX");
+            var delta = ((x1 - x0) / chart.series.length) * w;
+            if (am4core.isNumber(delta)) {
+                var middle = chart.series.length / 2;
+
+                var newIndex = 0;
+                chart.series.each(function(series) {
+                    if (!series.isHidden && !series.isHiding) {
+                        series.dummyData = newIndex;
+                        newIndex++;
+                    }
+                    else {
+                        series.dummyData = chart.series.indexOf(series);
+                    }
+                })
+                var visibleCount = newIndex;
+                var newMiddle = visibleCount / 2;
+
+                chart.series.each(function(series) {
+                    var trueIndex = chart.series.indexOf(series);
+                    var newIndex = series.dummyData;
+
+                    var dx = (newIndex - trueIndex + middle - newMiddle) * delta
+
+                    series.animate({ property: "dx", to: dx }, series.interpolationDuration, series.interpolationEasing);
+                    series.bulletsContainer.animate({ property: "dx", to: dx }, series.interpolationDuration, series.interpolationEasing);
+                })
+            }
+        }
+    }
+
+}); // end am4core.ready()
+</script>
+</html>
