@@ -1,6 +1,14 @@
 <!doctype html>
 <html>
 <head>
+    <style>
+        p{
+            margin-top: 30px;
+            float: middle;
+            margin-left: 100px;
+            text-align: left;
+        }
+    </style>
     <title>Top {{number}} posts from {{df_name}}</title>
 </head>
 <body>
@@ -8,7 +16,7 @@
     <div>
         {% for index, row in posts.iterrows() %}
         <div>
-            <p>{{row['Title']}}, {{row['Score']}}</p>
+            <p align = "center">{{row['Title']}}, {{row['Score']}}</p>
         </div>
         {% endfor %}
     </div>

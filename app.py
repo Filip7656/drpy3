@@ -141,6 +141,61 @@ def chart1(df_name):
         return "not found", 404
     return render_template('question_count.html', questions=questions, df_name=df_name, websites=data_pack_websites)
 
+
+@app.route('/duplicates_count/<df_name>')
+def duplicates_count(df_name):
+    if df_name in data_pack_websites:
+        sql = '''
+        SELECT date1, count(id) as cnt
+        FROM (
+        SELECT 
+        d.CreationDate as date1, 
+        (d.Id) as id
+        FROM posts d  -- d=duplicate
+            LEFT JOIN post_history ph ON ph.PostId = d.Id
+            LEFT JOIN post_links pl ON pl.PostId = d.Id
+            LEFT JOIN posts o ON o.Id = pl.RelatedPostId 
+        WHERE
+            d.PostTypeId = 1
+            AND pl.LinkTypeId = 3 
+        ) as t1
+        group by date1
+        order by date1
+        '''
+        result = run_sql_in_context_of(df_name, sql)
+        questions = {}
+        for index, row in result.iterrows():
+            questions[f'{row["date1"]}'] = row['cnt'] 
+    elif df_name == 'all':
+        questions = []
+        questions_temp = {}
+        for website in data_pack_websites:
+            sql = '''
+            SELECT date1, count(id) as cnt
+            FROM (
+            SELECT 
+            d.CreationDate as date1, 
+            (d.Id) as id
+            FROM posts d  -- d=duplicate
+                LEFT JOIN post_history ph ON ph.PostId = d.Id
+                LEFT JOIN post_links pl ON pl.PostId = d.Id
+                LEFT JOIN posts o ON o.Id = pl.RelatedPostId 
+            WHERE
+                d.PostTypeId = 1
+                AND pl.LinkTypeId = 3  
+            ) as t1
+            group by date1
+            order by date1
+            '''
+            result = run_sql_in_context_of(website, sql)
+            for index, row in result.iterrows():
+                questions_temp[f'{row["date1"]}'] = row['cnt'] 
+            questions.append(questions_temp)
+            questions_temp = {}
+    else:
+        return "not found", 404
+    return render_template('duplicates_count.html', questions=questions, df_name=df_name, websites=data_pack_websites)
+
 @app.route('/top_post/<df_name>/<int:number>')
 def top_post(df_name, number):
     try:
@@ -156,6 +211,30 @@ def top_post(df_name, number):
         return render_template('top_post.html', df_name=df_name, number=number, posts=result)
     except:
         return "not found", 404
+
+@app.route('/post_types')
+def post_types():
+    sql = '''
+        select count(*) as cnt, p.PostTypeId as id from posts p group by p.PostTypeId
+    '''
+    type_dict = {
+        '1': 'Question',
+        '2': 'Answer',
+        '3': 'Orphaned tag wiki',
+        '4': 'Tag wiki excerpt',
+        '5': 'Tag wiki',
+        '6': 'Moderator nomination',
+        '7': 'Wiki placeholder',
+        '8': 'Privilege wiki'
+    }
+    types_count = []
+    for website in data_pack_websites:
+        result = run_sql_in_context_of(website, sql)
+        temp = {}
+        for index, row in result.iterrows():
+            temp[type_dict[row['id']]] = row['cnt']
+        types_count.append(temp)
+    return render_template('post_types.html', types_count=types_count, websites=data_pack_websites)
 
 if __name__ == '__main__':
     init_data()

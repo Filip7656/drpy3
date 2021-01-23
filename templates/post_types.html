@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+    <style>
+        #chartdiv1 {
+          width: 100%;
+          height: 500px;
+        }
+        #chartdiv2 {
+          width: 100%;
+          height: 500px;
+        }
+        #chartdiv3 {
+          width: 100%;
+          height: 500px;
+        }
+    </style>
+    <title></title>
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/kelly.js"></script>
+</head>
+<body>
+    <h2 align = "center">Questions by type</h2>
+    <div>
+        <br>
+        <br>
+        <h2 align="center">{{websites[0]}}</h3>
+        <div id="chartdiv1"></div>
+        <h2 align="center">{{websites[1]}}</h3>
+        <div id="chartdiv2"></div>
+        <h2 align="center">{{websites[2]}}</h3>
+        <div id="chartdiv3"></div>
+    </div>
+</body>
+<script>
+    am4core.ready(function() {
+
+        // Themes begin
+        am4core.useTheme(am4themes_kelly);
+        am4core.useTheme(am4themes_animated);
+        // Themes end
+
+        // Create chart instance
+        var temp_data = [];
+        var chart1 = am4core.create("chartdiv1", am4charts.PieChart);
+        data1 = {{types_count[0]|safe}};
+        var keys1 = Object.keys(data1);
+        for(var k in keys1) {
+            temp_data.push(
+                {
+                    'Post type': keys1[k],
+                    'number' : data1[keys1[k]]
+                }
+            )
+        }
+        chart1.data = temp_data;
+        temp_data = [];
+        var chart2 = am4core.create("chartdiv2", am4charts.PieChart);
+        data2 = {{types_count[1]|safe}};
+        var keys2 = Object.keys(data2);
+        for(var k in keys2) {
+            temp_data.push(
+                {
+                    'Post type': keys2[k],
+                    'number' : data2[keys2[k]]
+                }
+            )
+        }
+        chart2.data = temp_data;
+        temp_data = [];
+        var chart3 = am4core.create("chartdiv3", am4charts.PieChart);
+        data3 = {{types_count[2]|safe}};
+        var keys3 = Object.keys(data3);
+        for(var k in keys3) {
+            temp_data.push(
+                {
+                    'Post type': keys3[k],
+                    'number' : data3[keys3[k]]
+                }
+            )
+        }
+        chart3.data = temp_data;
+// chart1
+        // Add and configure Series
+        var pieSeries1 = chart1.series.push(new am4charts.PieSeries());
+        pieSeries1.dataFields.value = "number";
+        pieSeries1.dataFields.category = "Post type";
+        pieSeries1.slices.template.stroke = am4core.color("#fff");
+        pieSeries1.slices.template.strokeOpacity = 1;
+
+        // This creates initial animation
+        pieSeries1.hiddenState.properties.opacity = 1;
+        pieSeries1.hiddenState.properties.endAngle = -90;
+        pieSeries1.hiddenState.properties.startAngle = -90;
+
+        chart1.hiddenState.properties.radius = am4core.percent(0);
+// chart2
+        var pieSeries2 = chart2.series.push(new am4charts.PieSeries());
+        pieSeries2.dataFields.value = "number";
+        pieSeries2.dataFields.category = "Post type";
+        pieSeries2.slices.template.stroke = am4core.color("#fff");
+        pieSeries2.slices.template.strokeOpacity = 1;
+
+        // This creates initial animation
+        pieSeries2.hiddenState.properties.opacity = 1;
+        pieSeries2.hiddenState.properties.endAngle = -90;
+        pieSeries2.hiddenState.properties.startAngle = -90;
+
+        chart2.hiddenState.properties.radius = am4core.percent(0);
+// chart3
+        var pieSeries3 = chart3.series.push(new am4charts.PieSeries());
+        pieSeries3.dataFields.value = "number";
+        pieSeries3.dataFields.category = "Post type";
+        pieSeries3.slices.template.stroke = am4core.color("#fff");
+        pieSeries3.slices.template.strokeOpacity = 1;
+
+        // This creates initial animation
+        pieSeries3.hiddenState.properties.opacity = 1;
+        pieSeries3.hiddenState.properties.endAngle = -90;
+        pieSeries3.hiddenState.properties.startAngle = -90;
+
+        chart3.hiddenState.properties.radius = am4core.percent(0);
+        }); // end am4core.ready()
+</script>
+</html>
