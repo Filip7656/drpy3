@@ -8,17 +8,36 @@
             margin-left: 100px;
             text-align: left;
         }
+        table {
+          border-collapse: collapse;
+        }
+        td, th {
+          border: 1px solid #999;
+          padding: 0.5rem;
+          text-align: left;
+        }
     </style>
     <title>Top {{number}} posts from {{df_name}}</title>
 </head>
 <body>
     <h2 align = "center">Top {{number}} posts from {{df_name}}</h2>
-    <div>
-        {% for index, row in posts.iterrows() %}
+    <table>
         <div>
-            <p align = "center">{{row['Title']}}, {{row['Score']}}</p>
+            <thead>
+                 <tr>
+                 <th>Title</th>
+                 <th>Score</th>
+                 </tr>
+            </thead>
+            <tbody>
+            {% for index, row in posts.iterrows() %}
+                <tr>
+                  <td>{{row['Title']}}</td>
+                  <td>{{row['Score']}}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
         </div>
-        {% endfor %}
-    </div>
+    </table>
 </body>
 </html>
